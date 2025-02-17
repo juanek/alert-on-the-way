@@ -17,12 +17,12 @@ public class Route implements Serializable {
     private double distance;
     private List<String> intersections;
 
-    public Route(String id, String name, String origin, String destination, double distancia, List<String> intersections) {
+    public Route(String id, String name, String origin, String destination, double distance, List<String> intersections) {
         this.id = id;
         this.name = name;
         this.origin = origin;
         this.destination = destination;
-        this.distance = distancia;
+        this.distance = distance;
         this.intersections = intersections;
     }
 
@@ -72,5 +72,17 @@ public class Route implements Serializable {
 
     public void setIntersections(List<String> intersections) {
         this.intersections = intersections;
+    }
+
+    @Override
+    public String toString() {
+        return "Route{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", origin='" + origin + '\'' +
+                ", destination='" + destination + '\'' +
+                ", distance=" + distance +
+                ", intersections=" + intersections +
+                '}';
     }
 }

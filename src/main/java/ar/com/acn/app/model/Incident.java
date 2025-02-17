@@ -72,4 +72,16 @@ public class Incident implements Serializable {
     public void setComments(String comments) {
         this.comments = comments;
     }
+
+    @Override
+    public String toString() {
+        return "Incident{" +
+                "id='" + id + '\'' +
+                ", routeId='" + routeId + '\'' +
+                ", kilometer=" + kilometer +
+                ", type='" + type + '\'' +
+                ", timestamp=" + timestamp +
+                ", comments='" + comments + '\'' +
+                '}';
+    }
 }

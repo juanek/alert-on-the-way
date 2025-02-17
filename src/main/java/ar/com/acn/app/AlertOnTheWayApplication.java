@@ -9,6 +9,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import java.time.LocalDateTime;
@@ -24,6 +25,7 @@ public class AlertOnTheWayApplication {
 	}
 
 	@Bean
+	@Profile("!test")
 	CommandLineRunner initDatabase(RouteRepository rutaRepository, IncidentRepository incidenteRepository) {
 		return args -> {
 			rutaRepository.deleteAll();
