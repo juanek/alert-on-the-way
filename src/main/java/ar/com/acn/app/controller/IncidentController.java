@@ -1,5 +1,6 @@
 package ar.com.acn.app.controller;
 
+import ar.com.acn.app.dto.IncidentDTO;
 import ar.com.acn.app.dto.RouteReport;
 import ar.com.acn.app.model.Incident;
 import ar.com.acn.app.service.IncidentService;
@@ -21,7 +22,7 @@ public class IncidentController {
     }
 
     @GetMapping("/consult")
-    public List<Incident> consultIncidents(@RequestParam String name, @RequestParam double kmInit) {
+    public List<IncidentDTO> consultIncidents(@RequestParam String name, @RequestParam double kmInit) {
        return incidentService.consultIncidents(name, kmInit);
     }
 

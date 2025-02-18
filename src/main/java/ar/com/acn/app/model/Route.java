@@ -1,6 +1,8 @@
 package ar.com.acn.app.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -15,9 +17,10 @@ public class Route implements Serializable {
     private String origin;
     private String destination;
     private double distance;
-    private List<String> intersections;
+    private List<Intersection> intersections;
 
-    public Route(String id, String name, String origin, String destination, double distance, List<String> intersections) {
+
+    public Route(String id, String name, String origin, String destination, double distance, List<Intersection> intersections) {
         this.id = id;
         this.name = name;
         this.origin = origin;
@@ -66,23 +69,14 @@ public class Route implements Serializable {
         this.distance = distance;
     }
 
-    public List<String> getIntersections() {
+    public List<Intersection> getIntersections() {
         return intersections;
     }
 
-    public void setIntersections(List<String> intersections) {
+    public void setIntersections(List<Intersection> intersections) {
         this.intersections = intersections;
     }
 
-    @Override
-    public String toString() {
-        return "Route{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", origin='" + origin + '\'' +
-                ", destination='" + destination + '\'' +
-                ", distance=" + distance +
-                ", intersections=" + intersections +
-                '}';
-    }
+
+
 }

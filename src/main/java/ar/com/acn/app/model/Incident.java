@@ -1,6 +1,13 @@
 package ar.com.acn.app.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.io.Serializable;
@@ -10,15 +17,24 @@ import java.time.LocalDateTime;
 public class Incident implements Serializable {
     @Id
     private String id;
-    private String routeId;
+
+    @DBRef(lazy = true)
+    private Route route; // Relación con la ruta donde ocurre el incidente
+
     private double kilometer;
-    private String type;
+
+    @DBRef
+    private IncidentType type; // Relación con el tipo de incidente
+
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime timestamp;
     private String comments;
 
-    public Incident(String id, String routeId, double kilometer, String type, LocalDateTime timestamp, String comments) {
+    public Incident(String id, Route route, double kilometer, IncidentType type, LocalDateTime timestamp, String comments) {
         this.id = id;
-        this.routeId = routeId;
+        this.route = route;
         this.kilometer = kilometer;
         this.type = type;
         this.timestamp = timestamp;
@@ -33,12 +49,20 @@ public class Incident implements Serializable {
         this.id = id;
     }
 
-    public String getRouteId() {
-        return routeId;
+    public Route getRoute() {
+        return route;
     }
 
-    public void setRouteId(String routeId) {
-        this.routeId = routeId;
+    public void setRoute(Route route) {
+        this.route = route;
+    }
+
+    public void setType(IncidentType type) {
+        this.type = type;
+    }
+
+    public IncidentType getType() {
+        return type;
     }
 
     public double getKilometer() {
@@ -49,13 +73,7 @@ public class Incident implements Serializable {
         this.kilometer = kilometer;
     }
 
-    public String getType() {
-        return type;
-    }
 
-    public void setType(String type) {
-        this.type = type;
-    }
 
     public LocalDateTime getTimestamp() {
         return timestamp;
@@ -77,9 +95,9 @@ public class Incident implements Serializable {
     public String toString() {
         return "Incident{" +
                 "id='" + id + '\'' +
-                ", routeId='" + routeId + '\'' +
+                ", route=" + route +
                 ", kilometer=" + kilometer +
-                ", type='" + type + '\'' +
+                ", type=" + type +
                 ", timestamp=" + timestamp +
                 ", comments='" + comments + '\'' +
                 '}';
