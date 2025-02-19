@@ -78,5 +78,15 @@ public class Route implements Serializable {
     }
 
 
-
+    @Override
+    public String toString() {
+        return "Route{" +
+                "id='" + id + '\'' +
+                ", name='" + name + '\'' +
+                ", origin='" + origin + '\'' +
+                ", destination='" + destination + '\'' +
+                ", distance=" + distance +
+                ", intersections=" + intersections +
+                '}';
+    }
 }

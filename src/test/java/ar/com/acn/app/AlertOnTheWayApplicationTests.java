@@ -6,6 +6,7 @@ import ar.com.acn.app.model.Route;
 import ar.com.acn.app.repository.IncidentRepository;
 import ar.com.acn.app.repository.RouteRepository;
 import ar.com.acn.app.service.IncidentService;
+import org.bson.types.ObjectId;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -48,7 +49,8 @@ class AlertOnTheWayApplicationTests {
 //
 //		// Buscar incidentes en un tramo de la ruta
 		System.out.println("Repositorio");
-		List<Incident> incidentList = incidentRepository.findIncidentsInRange(route.getId(), 50, 150);
+		ObjectId objectId = new ObjectId(route.getId());
+		List<Incident> incidentList = incidentRepository.findIncidentsInRange(objectId, 50, 150);
 		incidentList.forEach(System.out::println);
 //
 		// Consultar incidentes a través del servicio

@@ -21,5 +21,13 @@ public class Intersection {
     public void setKilometer(double kilometer) {
         this.kilometer = kilometer;
     }
+
+    public String getRouteId() {
+        return routeId;
+    }
+
+    public void setRouteId(String routeId) {
+        this.routeId = routeId;
+    }
 }
 

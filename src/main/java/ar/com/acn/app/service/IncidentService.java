@@ -1,10 +1,13 @@
 package ar.com.acn.app.service;
 
+import ar.com.acn.app.dto.IntersectionDTO;
 import ar.com.acn.app.dto.RouteReport;
+import ar.com.acn.app.dto.RouteSegmentDTO;
 import ar.com.acn.app.model.Incident;
 import ar.com.acn.app.model.Route;
 import ar.com.acn.app.repository.IncidentRepository;
 import ar.com.acn.app.repository.RouteRepository;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -33,10 +36,11 @@ public class IncidentService {
 
         Route route = routeRepository.findByName(routeName)
                 .orElseThrow(() -> new RuntimeException("Ruta no encontrada: " + routeName));
+        ObjectId routeObjectId = new ObjectId(route.getId()); // Convertir routeId a ObjectId
 
-        List<Incident> incidents = incidentRepository.findIncidentsInRange(route.getId(), kmInit, kmInit + 100);
+        List<Incident> incidents = incidentRepository.findIncidentsInRange(routeObjectId, kmInit, kmInit + 100);
         return incidents.stream().map(IncidentDTO::new).collect(Collectors.toList());
-        //return incidentRepository.findIncidentsInRange(route.getId(), kmInit, kmInit + 100);
+
     }
 
     @CacheEvict(value = "incidents", allEntries = true)
@@ -73,4 +77,23 @@ public class IncidentService {
                 .sorted(Comparator.comparingInt(RouteReport::getTotalSeverity).reversed())
                 .collect(Collectors.toList());
     }
+
+
+
+
+    public RouteSegmentDTO getRouteSegment(String routeId, double kmStart) {
+        double kmEnd = kmStart + 100;
+
+        ObjectId routeObjectId = new ObjectId(routeId); // Convertir routeId a ObjectId
+
+        // Consultar incidentes directamente desde MongoDB
+        List<IncidentDTO> incidents = incidentRepository.findIncidentsInRange(routeObjectId, kmStart, kmEnd)
+                .stream().map(IncidentDTO::new).collect(Collectors.toList());
+
+        // Consultar intersecciones directamente desde MongoDB
+        List<IntersectionDTO> intersections = routeRepository.findIntersectionsInRange1(routeId, kmStart, kmEnd);
+
+        return new RouteSegmentDTO(routeId, kmStart, kmEnd, incidents, intersections);
+    }
+
 }

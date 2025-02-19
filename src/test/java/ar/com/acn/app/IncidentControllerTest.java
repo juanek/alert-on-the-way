@@ -64,7 +64,7 @@ class IncidentControllerTest {
 
         assertFalse(result.isEmpty());
         assertEquals(1, result.size());
-        assertEquals("1", result.get(0).getRouteId());
+        assertEquals("1", result.get(0).getId());
         assertEquals("Accidente", result.get(0).getType());
         verify(incidentService, times(1)).consultIncidents("Ruta 1", 50);
     }
