@@ -13,16 +13,6 @@ import java.util.Optional;
 public interface RouteRepository extends MongoRepository<Route, String> {
 
     @Aggregation({
-            "{ $match: { _id: ?0 } }",
-            "{ $unwind: '$intersections' }",
-            "{ $match: { 'intersections.kilometer': { $gte: ?1, $lte: ?2 } } }",
-            "{ $lookup: { from: 'routes', localField: 'intersections.routeId', foreignField: '_id', as: 'intersectingRoute' } }",
-            "{ $unwind: '$intersectingRoute' }",
-            "{ $project: { _id: 0, intersectionKm: '$intersections.kilometer', intersectingRouteName: '$intersectingRoute.name' } }"
-    })
-    List<IntersectionDTO> findIntersectionsInRange(ObjectId routeId, double kmStart, double kmEnd);
-
-    @Aggregation({
             "{ $match: { _id: ?0 } }",  // Asegúrate de que el ID está en formato ObjectId
             "{ $unwind: '$intersections' }",
             "{ $match: { 'intersections.kilometer': { $gte: ?1, $lte: ?2 } } }",

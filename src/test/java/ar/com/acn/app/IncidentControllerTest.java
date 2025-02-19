@@ -54,20 +54,7 @@ class IncidentControllerTest {
         verify(incidentService, times(1)).registerIncident(any(Incident.class));
     }
 
-    @Test
-    void testConsultIncidents() {
-        List<Incident> incidents = Arrays.asList(incident);
-        List<IncidentDTO> dtos = incidents.stream().map(IncidentDTO::new).collect(Collectors.toList());
-        when(incidentService.consultIncidents("Ruta 1", 50)).thenReturn(dtos);
 
-        List<IncidentDTO> result = incidentController.consultIncidents("Ruta 1", 50);
-
-        assertFalse(result.isEmpty());
-        assertEquals(1, result.size());
-        assertEquals("1", result.get(0).getId());
-        assertEquals("Accidente", result.get(0).getType());
-        verify(incidentService, times(1)).consultIncidents("Ruta 1", 50);
-    }
 
     @Test
     void testDeleteIncident_Success() {

@@ -1,8 +1,7 @@
 package ar.com.acn.app.controller;
 
-import ar.com.acn.app.dto.IncidentDTO;
-import ar.com.acn.app.dto.RouteReport;
-import ar.com.acn.app.dto.RouteSegmentDTO;
+import ar.com.acn.app.dto.*;
+import ar.com.acn.app.exception.BadRequestException;
 import ar.com.acn.app.model.Incident;
 import ar.com.acn.app.model.Route;
 import ar.com.acn.app.repository.RouteRepository;
@@ -29,21 +28,6 @@ public class IncidentController {
         return incidentService.registerIncident(incident);
     }
 
-    @GetMapping("/consult")
-    public List<IncidentDTO> consultIncidents(@RequestParam String name, @RequestParam double kmInit) {
-        return incidentService.consultIncidents(name, kmInit);
-    }
-
-    @GetMapping("/incidents")
-    public RouteSegmentDTO getIncidents(@RequestParam String name, @RequestParam double kmInit) {
-        System.out.println("name --> "+name);
-        Optional<Route> optionalRoute = routeRepository.findByName(name);
-
-        Route route = optionalRoute.orElseThrow(() -> new RuntimeException("Invalid route name"));
-        System.out.println("route "+route.getId());
-        return incidentService.getRouteSegment(route.getId(), kmInit);
-    }
-
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteIncident(@PathVariable String id) {
         boolean deleted = incidentService.deleteIncident(id);
@@ -54,8 +38,38 @@ public class IncidentController {
         }
     }
 
+    @GetMapping("/incidents")
+    public ResponseEntity<?> getIncidents(@RequestParam String name, @RequestParam double kmInit) {
+
+        try {
+            Optional<Route> optionalRoute = routeRepository.findByName(name);
+            Route route = optionalRoute.orElseThrow(() -> new BadRequestException("Invalid route name"));
+            if((kmInit + 100 ) > route.getDistance()){
+                throw new BadRequestException("Invalid distance");
+            }
+            return new ResponseEntity<>(incidentService.getRouteSegment(route.getId(), kmInit),HttpStatus.OK);
+        } catch (BadRequestException e) {
+            ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("Internal Server Error: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+
+
     @GetMapping("/route-report")
-    public List<RouteReport> getRouteReport(@RequestParam String name) {
-        return incidentService.getRouteReport1(name);
+    public ResponseEntity<?> getRouteReport(@RequestParam String name) {
+        try {
+            RouteReportDTO body = incidentService.getRouteReport(name);
+            return new ResponseEntity<>(body, HttpStatus.OK);
+        } catch (BadRequestException e) {
+            ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("Internal Server Error: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

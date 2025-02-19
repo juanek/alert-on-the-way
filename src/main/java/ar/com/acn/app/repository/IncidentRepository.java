@@ -27,15 +27,9 @@ public interface IncidentRepository extends MongoRepository<Incident, String> {
             "{ '$unwind': '$incidentTypeDetails' }",
             "{ '$group': { '_id': { 'segment': { '$multiply': [ { '$floor': { '$divide': ['$kilometer', 100] } }, 100 ] } }, 'routeId': { '$first': { '$toString': '$route.$id' } }, 'totalSeverity': { '$sum': '$incidentTypeDetails.severity' } } }",
             "{ '$sort': { 'totalSeverity': -1 } }",
-            "{ '$project': { 'routeId': 1, 'segment': '$_id.segment', 'totalSeverity': 1, '_id': 0 } }"
+            "{ '$project': { 'segment': '$_id.segment', 'totalSeverity': 1, '_id': 0 } }"
     })
     List<RouteReport> getRouteReportByRouteId(String routeId);
-
-
-
-
-
-
 
     List<Incident> findByRoute(Route route);
 }

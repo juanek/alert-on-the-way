@@ -53,15 +53,6 @@ class AlertOnTheWayApplicationTests {
 		List<Incident> incidentList = incidentRepository.findIncidentsInRange(objectId, 50, 150);
 		incidentList.forEach(System.out::println);
 //
-		// Consultar incidentes a través del servicio
-		System.out.println("Service");
-		List<IncidentDTO> incidentList1 = incidentService.consultIncidents(route.getName(), 50);
-		incidentList1.forEach(System.out::println);
-//
-//		// Eliminar un incidente si la lista no está vacía
-//		if (!incidentList.isEmpty()) {
-//			incidentRepository.deleteById(incidentList.get(0).getId());
-//			System.out.println("Deleted incident: " + incidentList.get(0).getId());
-//		}
+
 	}
 }
