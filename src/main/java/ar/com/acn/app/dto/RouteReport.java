@@ -1,32 +1,23 @@
 package ar.com.acn.app.dto;
 
-public class RouteReport {
-    private String routeId;
-    private int segment; // Tramo de 100KM
-    private int totalSeverity; // Suma de la gravedad en el tramo
+import lombok.Data;
 
-    public RouteReport(String routeId, int segment, int totalSeverity) {
-        this.routeId = routeId;
+@Data
+public class RouteReport {
+    private String route;  // <-- Debería llamarse igual que en la agregación
+    private int segment;
+    private int totalSeverity;
+
+    public RouteReport(String route, int segment, int totalSeverity) {
+        this.route = route;
         this.segment = segment;
         this.totalSeverity = totalSeverity;
-    }
-
-    public String getRouteId() {
-        return routeId;
-    }
-
-    public int getSegment() {
-        return segment;
-    }
-
-    public int getTotalSeverity() {
-        return totalSeverity;
     }
 
     @Override
     public String toString() {
         return "RouteReport{" +
-                "routeId='" + routeId + '\'' +
+                "route='" + route + '\'' +
                 ", segment=" + segment +
                 ", totalSeverity=" + totalSeverity +
                 '}';

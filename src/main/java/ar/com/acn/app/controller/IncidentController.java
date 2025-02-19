@@ -55,7 +55,7 @@ public class IncidentController {
     }
 
     @GetMapping("/route-report")
-    public List<RouteReport> getRouteReport(@RequestParam String routeId) {
-        return incidentService.getRouteReport(routeId);
+    public List<RouteReport> getRouteReport(@RequestParam String name) {
+        return incidentService.getRouteReport1(name);
     }
 }

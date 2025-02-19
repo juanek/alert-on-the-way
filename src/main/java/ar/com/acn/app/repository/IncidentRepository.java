@@ -2,6 +2,7 @@ package ar.com.acn.app.repository;
 
 
 import ar.com.acn.app.dto.IncidentDTO;
+import ar.com.acn.app.dto.RouteReport;
 import ar.com.acn.app.model.Incident;
 import ar.com.acn.app.model.Route;
 import org.bson.types.ObjectId;
@@ -19,6 +20,22 @@ public interface IncidentRepository extends MongoRepository<Incident, String> {
             "{ $project: { '_id': 1, 'kilometer': 1, 'type': 1, 'comments': 1, 'timestamp': 1 } }"
     })
     List<Incident> findIncidentsInRange(ObjectId routeId, double kmStart, double kmEnd);
+
+    @Aggregation(pipeline = {
+            "{ '$match': { 'route.$id': ObjectId(?0) } }",
+            "{ '$lookup': { 'from': 'incident_types', 'localField': 'type.$id', 'foreignField': '_id', 'as': 'incidentTypeDetails' } }",
+            "{ '$unwind': '$incidentTypeDetails' }",
+            "{ '$group': { '_id': { 'segment': { '$multiply': [ { '$floor': { '$divide': ['$kilometer', 100] } }, 100 ] } }, 'routeId': { '$first': { '$toString': '$route.$id' } }, 'totalSeverity': { '$sum': '$incidentTypeDetails.severity' } } }",
+            "{ '$sort': { 'totalSeverity': -1 } }",
+            "{ '$project': { 'routeId': 1, 'segment': '$_id.segment', 'totalSeverity': 1, '_id': 0 } }"
+    })
+    List<RouteReport> getRouteReportByRouteId(String routeId);
+
+
+
+
+
+
 
     List<Incident> findByRoute(Route route);
 }

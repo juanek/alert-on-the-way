@@ -52,8 +52,25 @@ public class IncidentService {
         return false;
     }
 
-    public List<RouteReport> getRouteReport(String routeId) {
-        Optional<Route> routeOptional = routeRepository.findById(routeId);
+    public List<RouteReport> getRouteReport1(String routeName) {
+        Optional<Route> routeOptional = routeRepository.findByName(routeName);
+        if (routeOptional.isEmpty()) {
+            System.out.println("No encontró la ruta!!!");
+            return Collections.emptyList();
+        }
+
+        Route route = routeOptional.get();
+        List<RouteReport> reports = incidentRepository.getRouteReportByRouteId(route.getId());
+
+        // Imprimir JSON antes de devolver
+        reports.forEach(report -> System.out.println(report));
+
+        return reports;
+    }
+
+
+    public List<RouteReport> getRouteReport(String name) {
+        Optional<Route> routeOptional = routeRepository.findByName(name);
         if (routeOptional.isEmpty()) {
             return Collections.emptyList();
         }
@@ -73,7 +90,7 @@ public class IncidentService {
 
         // Convertir a lista y ordenar de mayor a menor gravedad
         return severityBySegment.entrySet().stream()
-                .map(entry -> new RouteReport(routeId, entry.getKey(), entry.getValue()))
+                .map(entry -> new RouteReport(name, entry.getKey(), entry.getValue()))
                 .sorted(Comparator.comparingInt(RouteReport::getTotalSeverity).reversed())
                 .collect(Collectors.toList());
     }
