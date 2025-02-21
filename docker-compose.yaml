@@ -1,7 +1,10 @@
+version: '3.8'
+
 services:
   app:
-    build: .
-    container_name: springboot-app
+    image: openjdk:17-jdk-slim
+    container_name: app-alert-on-the-way
+    working_dir: /app
     ports:
       - "8080:8080"
     depends_on:
@@ -11,10 +14,13 @@ services:
       SPRING_DATA_MONGODB_URI: mongodb://mongodb:27017/alerts_route
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+    volumes:
+      - ./target/alert-on-the-way-0.0.1-SNAPSHOT.jar:/app/app.jar
+    command: ["java", "-jar", "app.jar"]
 
   mongodb:
     image: mongo:6.0
-    container_name: mongodb
+    container_name: mongodb-alert-on-the-way
     ports:
       - "27017:27017"
     volumes:
@@ -22,7 +28,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: redis
+    container_name: redis-alert-on-the-way
     ports:
       - "6379:6379"
 
