@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/incidents")
+@RequestMapping("/api/alert-on-the-way")
 public class IncidentController {
     @Autowired
     private IncidentService incidentService;
@@ -24,8 +24,16 @@ public class IncidentController {
     RouteRepository routeRepository;
 
     @PostMapping("/register")
-    public Incident registerIncident(@RequestBody Incident incident) {
-        return incidentService.registerIncident(incident);
+    public ResponseEntity<?> registerIncident(@RequestBody RequestIncidentBody incident)  {
+        try {
+            return new ResponseEntity<>(incidentService.registerIncident(incident),HttpStatus.OK);
+        } catch (BadRequestException e) {
+            ErrorResponse errorResponse = new ErrorResponse(e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            ErrorResponse errorResponse = new ErrorResponse("Internal Server Error: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @DeleteMapping("/delete/{id}")

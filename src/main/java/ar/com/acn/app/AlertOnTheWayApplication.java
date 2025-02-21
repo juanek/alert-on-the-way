@@ -51,11 +51,11 @@ public class AlertOnTheWayApplication {
 			IncidentType trafficCamera = incidentTypeRepository.save(new IncidentType(null, "Fotomulta", 1));
 
 			// Crear y guardar rutas sin intersecciones
-			Route route1 = new Route(null, "Route 1", "City A", "City B", 300, new ArrayList<>());
-			Route route2 = new Route(null, "Route 2", "City C", "City D", 150, new ArrayList<>());
-			Route route3 = new Route(null, "Route 3", "City E", "City F", 200, new ArrayList<>());
-			Route route4 = new Route(null, "Route 4", "City G", "City H", 250, new ArrayList<>());
-			Route route5 = new Route(null, "Route 5", "City I", "City J", 400, new ArrayList<>());
+			Route route1 = new Route(null, "Ruta 1", "Ciudad A", "Ciudad B", 300, new ArrayList<>());
+			Route route2 = new Route(null, "Ruta 2", "Ciudad C", "Ciudad D", 150, new ArrayList<>());
+			Route route3 = new Route(null, "Ruta 3", "Ciudad E", "Ciudad F", 200, new ArrayList<>());
+			Route route4 = new Route(null, "Ruta 4", "Ciudad G", "Ciudad H", 250, new ArrayList<>());
+			Route route5 = new Route(null, "Ruta 5", "Ciudad I", "Ciudad J", 400, new ArrayList<>());
 
 			// Guardar rutas en MongoDB
 			route1 = routeRepository.save(route1);
@@ -86,11 +86,11 @@ public class AlertOnTheWayApplication {
 
 			// Crear y guardar incidentes con referencias
 			incidentRepository.saveAll(Arrays.asList(
-					new Incident(null, route1, 50, accident, LocalDateTime.now(), "Multi-car collision"),
-					new Incident(null, route2, 30, pothole, LocalDateTime.now(), "Large pothole in right lane"),
-					new Incident(null, route3, 120, policeControl, LocalDateTime.now(), "Alcohol control checkpoint"),
-					new Incident(null, route4, 200, fire, LocalDateTime.now(), "Fire on the roadside"),
-					new Incident(null, route5, 90, fog, LocalDateTime.now(), "Dense fog reducing visibility")
+					new Incident(null, route1, 50, accident, LocalDateTime.now(), "Choque de varios vehículos"),
+					new Incident(null, route2, 30, pothole, LocalDateTime.now(), "Baches grandes en el carril derecho"),
+					new Incident(null, route3, 120, policeControl, LocalDateTime.now(), "Control de alcoholemia"),
+					new Incident(null, route4, 200, fire, LocalDateTime.now(), "Incendio al borde de la carretera"),
+					new Incident(null, route5, 90, fog, LocalDateTime.now(), "Niebla densa que reduce la visibilidad ")
 			));
 		};
 	}

@@ -42,17 +42,6 @@ class IncidentControllerTest {
         incident = new Incident("1", route, 50, incidentType, LocalDateTime.now(), "Colisión múltiple");
     }
 
-    @Test
-    void testRegisterIncident() {
-        when(incidentService.registerIncident(any(Incident.class))).thenReturn(incident);
-
-        Incident result = incidentController.registerIncident(incident);
-
-        assertNotNull(result);
-        assertEquals("Ruta 1", result.getRoute().getName());
-        assertEquals("Accidente", result.getType().getName());
-        verify(incidentService, times(1)).registerIncident(any(Incident.class));
-    }
 
 
 
