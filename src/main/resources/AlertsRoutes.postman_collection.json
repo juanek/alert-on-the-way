@@ -1,0 +1,126 @@
+{
+	"info": {
+		"_postman_id": "c5ab9e4b-a24f-4d9a-833b-ec1abea9d1f9",
+		"name": "Alerts Routes",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "11944835"
+	},
+	"item": [
+		{
+			"name": "Alta Incidente",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"routeName\": \"Ruta 1\",\r\n    \"kilometer\": 150,\r\n    \"type\": \"Accidente\",\r\n    \"comments\": \"Choque entre dos vehículos\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/alert-on-the-way/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"alert-on-the-way",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Consultar  incidentes",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/alert-on-the-way/incidents?name=Ruta 1&kmInit=50",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"alert-on-the-way",
+						"incidents"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Ruta 1"
+						},
+						{
+							"key": "kmInit",
+							"value": "50"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Reporte de ruta",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/alert-on-the-way/route-report?name=Ruta 1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"alert-on-the-way",
+						"route-report"
+					],
+					"query": [
+						{
+							"key": "name",
+							"value": "Ruta 1"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Borrar Incidente",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/alert-on-the-way/delete/67b7e4b121a6f415c5120a64",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"alert-on-the-way",
+						"delete",
+						"67b7e4b121a6f415c5120a64"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
