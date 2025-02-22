@@ -135,8 +135,11 @@ Tribu JavaShark - Cápsula Bases No Relacionales y Manejo de Caché
   ```
 
 ## 📝 Notas Adicionales
-- Para probar la API con Postman, puedes importar el archivo de colección.
-- MongoDB almacena las rutas y los incidentes.
-- Redis se usa para mejorar la velocidad de consulta mediante caché.
+- El archivo de Postman para probar los endpoints se encuentra en el directorio `src/main/resources`.
+- MongoDB y Redis se ejecutan como contenedores dentro del `docker-compose.yaml`.
+- Para detener los contenedores, usa:
+  ```sh
+  docker-compose down
+  ```
 
 
