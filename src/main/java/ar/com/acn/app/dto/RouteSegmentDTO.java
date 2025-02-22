@@ -13,6 +13,10 @@ public class RouteSegmentDTO {
     private List<IncidentDTO> incidents;
     private List<IntersectionDTO> intersections;
 
+    public RouteSegmentDTO() {
+
+    }
+
     public RouteSegmentDTO(String routeId, double kmStart, double kmEnd,
                            List<IncidentDTO> incidents, List<IntersectionDTO> intersections) {
         this.routeId = routeId;

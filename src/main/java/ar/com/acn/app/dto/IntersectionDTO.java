@@ -12,5 +12,7 @@ public class IntersectionDTO {
         this.intersectionKm = intersectionKm;
     }
 
+    public IntersectionDTO() {
+    }
 }
 

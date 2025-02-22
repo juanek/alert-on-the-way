@@ -12,10 +12,13 @@ import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +33,15 @@ public class IncidentService {
     @Autowired
     private IncidentTypeRepository incidentTypeRepository;
 
-    @CacheEvict(value = "incidents", allEntries = true)
+    @Autowired
+    private RedisTemplate<String, Object> redisTemplate;
+
+    private static final int QUERY_THRESHOLD = 5;
+    private static final Duration SHORT_TTL = Duration.ofMinutes(10);
+    private static final Duration LONG_TTL = Duration.ofHours(1);
+
+
+    @CacheEvict(value = "incidents", allEntries = true) // Invalida TODAS las entradas en incidents
     public Incident registerIncident(RequestIncidentBody requestIncidentBody) throws BadRequestException {
         Optional<Route> routeOptional = routeRepository.findByName(requestIncidentBody.getRouteName());
         Route route = routeOptional.orElseThrow(()-> new BadRequestException("Invalid route name"));
@@ -44,7 +55,12 @@ public class IncidentService {
 
         Incident incident = mapear(requestIncidentBody,route,incidentType);
 
-        return incidentRepository.save(incident);
+        Incident savedIncident = incidentRepository.save(incident);
+
+        // Invalida cache solo para la ruta específica
+        evictRouteCache(route.getId());
+
+        return savedIncident;
     }
 
     private Incident mapear(RequestIncidentBody requestIncidentBody,Route route,IncidentType incidentType) {
@@ -54,8 +70,14 @@ public class IncidentService {
 
     @CacheEvict(value = "incidents", allEntries = true)
     public boolean deleteIncident(String id) {
-        if (incidentRepository.existsById(id)) {
+        Optional<Incident> incidentOpt = incidentRepository.findById(id);
+        if (incidentOpt.isPresent()) {
+            Incident incident = incidentOpt.get();
             incidentRepository.deleteById(id);
+
+            // Invalida cache solo para la ruta específica
+            evictRouteCache(incident.getRoute().getId());
+
             return true;
         }
         return false;
@@ -68,22 +90,63 @@ public class IncidentService {
         return new RouteReportDTO(routeName,reports);
     }
 
+    private void evictRouteCache(String routeId) {
+        String cacheKeyPattern = "incidents::" + routeId + "_*";
+        Set<String> keys = redisTemplate.keys(cacheKeyPattern);
+        if (keys != null) {
+            for (String key : keys) {
+                redisTemplate.delete(key);
+            }
+        }
+        // También eliminar el contador de consultas
+        redisTemplate.delete("route_query_count:" + routeId);
+    }
 
-
-    //@Cacheable(value = "incidents", key = "#routeName + #kmInit")
+    //@Cacheable(value = "incidents", key = "#routeId + '_' + #kmStart")
     public RouteSegmentDTO getRouteSegment(String routeId, double kmStart) {
         double kmEnd = kmStart + 100;
+        String cacheKeyIncident = "incidents::" + routeId + "_"+kmStart;
+        // Incrementa el contador de consultas en Redis antes de ir a la BD
+        String counterKey = "route_query_count:" + routeId;
 
-        ObjectId routeObjectId = new ObjectId(routeId); // Convertir routeId a ObjectId
+        Long expire = redisTemplate.getExpire(cacheKeyIncident, TimeUnit.SECONDS);
+        System.out.println(" expire "+expire);
 
-        // Consultar incidentes directamente desde MongoDB
+        Long queryCount = redisTemplate.opsForValue().increment(counterKey);
+
+        if (queryCount == 1) {
+            redisTemplate.expire(cacheKeyIncident, LONG_TTL); // Expirar en 1 hora
+        }
+
+        // Si supera el límite de consultas, cambiar TTL de la caché
+        if (queryCount != null && queryCount > QUERY_THRESHOLD) {
+            String cacheKeyPattern = "incidents::" + routeId + "_*";
+            Set<String> keys = redisTemplate.keys(cacheKeyPattern);
+            if (keys != null) {
+                for (String key : keys) {
+                    redisTemplate.expire(key, SHORT_TTL);
+                }
+            }
+        }
+
+        RouteSegmentDTO routeSegmentDTOCache = (RouteSegmentDTO) redisTemplate.opsForValue().get(cacheKeyIncident);
+        if (routeSegmentDTOCache != null) {
+            return routeSegmentDTOCache;
+        }
+
+
+        ObjectId routeObjectId = new ObjectId(routeId);
         List<IncidentDTO> incidents = incidentRepository.findIncidentsInRange(routeObjectId, kmStart, kmEnd)
                 .stream().map(IncidentDTO::new).collect(Collectors.toList());
 
-        // Consultar intersecciones directamente desde MongoDB
         List<IntersectionDTO> intersections = routeRepository.findIntersectionsInRange1(routeId, kmStart, kmEnd);
 
-        return new RouteSegmentDTO(routeId, kmStart, kmEnd, incidents, intersections);
+        RouteSegmentDTO routeSegmentDTO = new RouteSegmentDTO(routeId, kmStart, kmEnd, incidents, intersections);
+
+        redisTemplate.opsForValue().set(cacheKeyIncident, routeSegmentDTO);
+
+        return routeSegmentDTO;
     }
+
 
 }
