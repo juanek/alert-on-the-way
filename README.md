@@ -1,7 +1,8 @@
 # 🚨 Alert on the Way - API de Gestión de Incidentes en Rutas
 
 ## 📌 Descripción
-Tribu JavaShark - Cápsula Bases No Relacionales y Manejo de Caché
+Tribu JavaShark - Cápsula Bases No Relacionales y Manejo de Caché.
+
 **Alert on the Way** es una API REST diseñada para la gestión de incidentes en rutas. Permite registrar, consultar, eliminar incidentes y generar reportes de rutas, almacenando datos en MongoDB y optimizando consultas con Redis.
 
 ## 🛠 Tecnologías Utilizadas
