@@ -35,7 +35,6 @@ public class RedisConfig {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        // Nueva forma de activar la tipificación predeterminada
         objectMapper.activateDefaultTyping(
                 objectMapper.getPolymorphicTypeValidator(),
                 ObjectMapper.DefaultTyping.NON_FINAL,
@@ -43,7 +42,6 @@ public class RedisConfig {
         );
 
         RedisSerializer<Object> serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
-
         RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofHours(1)) // Cache por defecto 1 hora
                 .disableCachingNullValues()

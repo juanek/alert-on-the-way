@@ -87,6 +87,7 @@ public class AlertOnTheWayApplication {
 			// Crear y guardar incidentes con referencias
 			incidentRepository.saveAll(Arrays.asList(
 					new Incident(null, route1, 50, accident, LocalDateTime.now(), "Choque de varios vehículos"),
+					new Incident(null, route1, 80, pothole, LocalDateTime.now(), "Baches grandes en el carril izquierdo"),
 					new Incident(null, route2, 30, pothole, LocalDateTime.now(), "Baches grandes en el carril derecho"),
 					new Incident(null, route3, 120, policeControl, LocalDateTime.now(), "Control de alcoholemia"),
 					new Incident(null, route4, 200, fire, LocalDateTime.now(), "Incendio al borde de la carretera"),

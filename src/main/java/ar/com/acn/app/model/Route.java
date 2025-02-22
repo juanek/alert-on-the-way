@@ -29,6 +29,9 @@ public class Route implements Serializable {
         this.intersections = intersections;
     }
 
+    public Route() {
+    }
+
     public String getId() {
         return id;
     }

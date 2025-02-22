@@ -9,6 +9,8 @@ import ar.com.acn.app.repository.IncidentRepository;
 import ar.com.acn.app.repository.IncidentTypeRepository;
 import ar.com.acn.app.repository.RouteRepository;
 import org.bson.types.ObjectId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -23,6 +25,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class IncidentService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(IncidentService.class);
 
     @Autowired
     private IncidentRepository incidentRepository;
@@ -44,16 +48,16 @@ public class IncidentService {
     @CacheEvict(value = "incidents", allEntries = true) // Invalida TODAS las entradas en incidents
     public Incident registerIncident(RequestIncidentBody requestIncidentBody) throws BadRequestException {
         Optional<Route> routeOptional = routeRepository.findByName(requestIncidentBody.getRouteName());
-        Route route = routeOptional.orElseThrow(()-> new BadRequestException("Invalid route name"));
+        Route route = routeOptional.orElseThrow(() -> new BadRequestException("Invalid route name"));
 
         Optional<IncidentType> optIncidentType = incidentTypeRepository.findByName(requestIncidentBody.getType());
-        IncidentType incidentType = optIncidentType.orElseThrow(()->new BadRequestException("Invalid incident name"));
+        IncidentType incidentType = optIncidentType.orElseThrow(() -> new BadRequestException("Invalid incident name"));
 
-        if(requestIncidentBody.getKilometer() > route.getDistance()){
+        if (requestIncidentBody.getKilometer() > route.getDistance()) {
             throw new BadRequestException("Invalid distance");
         }
 
-        Incident incident = mapear(requestIncidentBody,route,incidentType);
+        Incident incident = mapear(requestIncidentBody, route, incidentType);
 
         Incident savedIncident = incidentRepository.save(incident);
 
@@ -63,8 +67,8 @@ public class IncidentService {
         return savedIncident;
     }
 
-    private Incident mapear(RequestIncidentBody requestIncidentBody,Route route,IncidentType incidentType) {
-        return new Incident(null,route, requestIncidentBody.getKilometer(), incidentType,LocalDateTime.now(),requestIncidentBody.getComments());
+    private Incident mapear(RequestIncidentBody requestIncidentBody, Route route, IncidentType incidentType) {
+        return new Incident(null, route, requestIncidentBody.getKilometer(), incidentType, LocalDateTime.now(), requestIncidentBody.getComments());
     }
 
 
@@ -85,66 +89,58 @@ public class IncidentService {
 
     public RouteReportDTO getRouteReport(String routeName) throws BadRequestException {
         Optional<Route> routeOptional = routeRepository.findByName(routeName);
-        Route route = routeOptional.orElseThrow(()-> new BadRequestException("Invalid route name"));
+        Route route = routeOptional.orElseThrow(() -> new BadRequestException("Invalid route name"));
         List<RouteReport> reports = incidentRepository.getRouteReportByRouteId(route.getId());
-        return new RouteReportDTO(routeName,reports);
+        return new RouteReportDTO(routeName, reports);
     }
 
     private void evictRouteCache(String routeId) {
         String cacheKeyPattern = "incidents::" + routeId + "_*";
         Set<String> keys = redisTemplate.keys(cacheKeyPattern);
-        if (keys != null) {
-            for (String key : keys) {
-                redisTemplate.delete(key);
-            }
+        for (String key : keys) {
+            redisTemplate.delete(key);
         }
         // También eliminar el contador de consultas
         redisTemplate.delete("route_query_count:" + routeId);
     }
 
-    //@Cacheable(value = "incidents", key = "#routeId + '_' + #kmStart")
+
     public RouteSegmentDTO getRouteSegment(String routeId, double kmStart) {
         double kmEnd = kmStart + 100;
-        String cacheKeyIncident = "incidents::" + routeId + "_"+kmStart;
+        RouteSegmentDTO routeSegmentDTO = null;
+        String cacheKeyIncident = "incidents::" + routeId + "_" + kmStart;
         // Incrementa el contador de consultas en Redis antes de ir a la BD
         String counterKey = "route_query_count:" + routeId;
-
-        Long expire = redisTemplate.getExpire(cacheKeyIncident, TimeUnit.SECONDS);
-        System.out.println(" expire "+expire);
-
         Long queryCount = redisTemplate.opsForValue().increment(counterKey);
-
-        if (queryCount == 1) {
-            redisTemplate.expire(cacheKeyIncident, LONG_TTL); // Expirar en 1 hora
-        }
-
-        // Si supera el límite de consultas, cambiar TTL de la caché
-        if (queryCount != null && queryCount > QUERY_THRESHOLD) {
-            String cacheKeyPattern = "incidents::" + routeId + "_*";
-            Set<String> keys = redisTemplate.keys(cacheKeyPattern);
-            if (keys != null) {
+        LOGGER.debug("querycount {}" , queryCount);
+        Long expire = redisTemplate.getExpire(cacheKeyIncident, TimeUnit.SECONDS);
+        if (expire.intValue() <= 0) {
+            LOGGER.debug(" La clave no existe.");
+            ObjectId routeObjectId = new ObjectId(routeId);
+            List<IncidentDTO> incidents = incidentRepository.findIncidentsInRange(routeObjectId, kmStart, kmEnd)
+                    .stream().map(IncidentDTO::new).collect(Collectors.toList());
+            List<IntersectionDTO> intersections = routeRepository.findIntersectionsInRange1(routeId, kmStart, kmEnd);
+            routeSegmentDTO = new RouteSegmentDTO(routeId, kmStart, kmEnd, incidents, intersections);
+            redisTemplate.opsForValue().set(cacheKeyIncident, routeSegmentDTO);
+            redisTemplate.expire(cacheKeyIncident, LONG_TTL);
+            if (queryCount != null && queryCount > 1) {
+                redisTemplate.opsForValue().set(counterKey, 1);
+            }
+        } else {
+            LOGGER.debug(" La clave tiene un TTL de " + expire + " segundos.");
+            // Si supera el límite de consultas, cambiar TTL de la caché de la ruta
+            if (queryCount != null && queryCount > QUERY_THRESHOLD) {
+                String cacheKeyPattern = "incidents::" + routeId + "_*";
+                Set<String> keys = redisTemplate.keys(cacheKeyPattern);
                 for (String key : keys) {
                     redisTemplate.expire(key, SHORT_TTL);
                 }
             }
+            RouteSegmentDTO routeSegmentDTOCache = (RouteSegmentDTO) redisTemplate.opsForValue().get(cacheKeyIncident);
+            if (routeSegmentDTOCache != null) {
+                return routeSegmentDTOCache;
+            }
         }
-
-        RouteSegmentDTO routeSegmentDTOCache = (RouteSegmentDTO) redisTemplate.opsForValue().get(cacheKeyIncident);
-        if (routeSegmentDTOCache != null) {
-            return routeSegmentDTOCache;
-        }
-
-
-        ObjectId routeObjectId = new ObjectId(routeId);
-        List<IncidentDTO> incidents = incidentRepository.findIncidentsInRange(routeObjectId, kmStart, kmEnd)
-                .stream().map(IncidentDTO::new).collect(Collectors.toList());
-
-        List<IntersectionDTO> intersections = routeRepository.findIntersectionsInRange1(routeId, kmStart, kmEnd);
-
-        RouteSegmentDTO routeSegmentDTO = new RouteSegmentDTO(routeId, kmStart, kmEnd, incidents, intersections);
-
-        redisTemplate.opsForValue().set(cacheKeyIncident, routeSegmentDTO);
-
         return routeSegmentDTO;
     }
 
